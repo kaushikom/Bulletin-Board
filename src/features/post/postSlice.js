@@ -1,16 +1,16 @@
-import { createSlice, nanoid, createAsyncThunk } from '@reduxjs/toolkit';
-import { sub } from 'date-fns';
-import axios from 'axios';
+import { createSlice, nanoid, createAsyncThunk } from "@reduxjs/toolkit";
+import { sub } from "date-fns";
+import axios from "axios";
 
-const POSTS_URL = 'https://jsonplaceholder.typicode.com/posts';
+const POSTS_URL = "https://jsonplaceholder.typicode.com/posts";
 
 const initialState = {
   posts: [],
-  status: 'idle', // idle | loading | succeeded | failed
+  status: "idle", // idle | loading | succeeded | failed
   error: null,
 };
 
-export const fetchPosts = createAsyncThunk('posts/fetchPosts', async () => {
+export const fetchPosts = createAsyncThunk("posts/fetchPosts", async () => {
   try {
     const response = await axios.get(POSTS_URL);
     return response.data;
@@ -20,7 +20,7 @@ export const fetchPosts = createAsyncThunk('posts/fetchPosts', async () => {
 });
 
 export const addNewPost = createAsyncThunk(
-  'posts/addNewPosts',
+  "posts/addNewPosts",
   async (initialPost) => {
     try {
       const response = await axios.post(POSTS_URL, initialPost);
@@ -32,7 +32,7 @@ export const addNewPost = createAsyncThunk(
 );
 
 const postSlice = createSlice({
-  name: 'posts',
+  name: "posts",
   initialState,
   reducers: {
     postAdded: {
@@ -68,15 +68,16 @@ const postSlice = createSlice({
   extraReducers(builder) {
     builder
       .addCase(fetchPosts.pending, (state, action) => {
-        state.status = 'loading';
+        state.status = "loading";
       })
       .addCase(fetchPosts.fulfilled, (state, action) => {
-        state.status = 'succeeded';
+        state.status = "succeeded";
         const postsSet = new Set(state.posts.map((post) => post.id));
+        let min = 1;
         const loadedPosts = action.payload
           .map((post) => {
             post.date = sub(new Date(), {
-              minutes: postsSet.size + 1,
+              minutes: min++,
             }).toISOString();
             post.reactions = {
               thumbsUp: 0,
@@ -92,7 +93,7 @@ const postSlice = createSlice({
         state.posts = state.posts.concat(loadedPosts);
       })
       .addCase(fetchPosts.rejected, (state, action) => {
-        state.status = 'failed';
+        state.status = "failed";
         state.error = action.error.message;
       })
       .addCase(addNewPost.fulfilled, (state, action) => {
